@@ -166,12 +166,9 @@ function triggerJumpscare(imageSrc) {
     
     setTimeout(() => {
         if(scareScreen) scareScreen.classList.add('hidden');
-        if (typeof Minigame !== 'undefined' && Math.random() < 0.2) { 
-            Minigame.init();
-        } else {
-            document.getElementById('game-over-screen')?.classList.remove('hidden');
-        }
+        document.getElementById('game-over-screen')?.classList.remove('hidden');
     }, 2000);
+
 }
 
 function winNight() {

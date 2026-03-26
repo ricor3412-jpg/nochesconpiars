@@ -19,9 +19,10 @@ const EnemyPaths = {
     alfaro: ['cam6', 'cam7', 'cam4', 'cam5', 'cam1', 'duct'],
     picock: ['cam6', 'cam7', 'cam4', 'cam5', 'cam1', 'duct'],
     
-    // Peñones (Cam 1 -> Oficina)
-    peñones: ['cam1', 'office'] 
+    // Peñones (Special: Cam 1 -> CAM_ALL -> Office)
+    peñones: ['cam1', 'cam_all', 'office'] 
 };
+
 
 const EnemyStarts = {
     andre: 'cam8', gabo: 'cam8', piar: 'cam8', 
@@ -94,11 +95,12 @@ function moveEnemy(enemy) {
 
         AIManager.positions[enemy] = nextPos;
         
-        if (nextPos === 'door_left' || nextPos === 'door_right' || nextPos === 'duct' || nextPos === 'office') {
+        if (nextPos === 'door_left' || nextPos === 'door_right' || nextPos === 'duct' || nextPos === 'office' || nextPos === 'cam_all') {
             attackOffice(enemy, nextPos);
         } else if(GameState.isMonitorUp) {
             updateCameraView(); 
         }
+
     }
 }
 
@@ -130,8 +132,18 @@ function attackOffice(enemy, from) {
         }
         
         setTimeout(() => { checkDoorDefense(enemy, side); }, 5000); 
+    } else if (from === 'cam_all') {
+        // En cam_all, el jugador tiene 3 SEGUNDOS para cambiar de cámara o cerrar el monitor
+        if(GameState.isMonitorUp) updateCameraView();
+        setTimeout(() => {
+            if (AIManager.positions['peñones'] === 'cam_all' && GameState.isMonitorUp) {
+                // Sigue en el monitor activado después de 3s -> Muerte
+                triggerJumpscare(`assets/img/peñones.png`);
+            }
+        }, 3000);
     }
 }
+
 
 function checkDefense(enemy, from) {
     if (GameState.gameOver) return;

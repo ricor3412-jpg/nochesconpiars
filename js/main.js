@@ -138,9 +138,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if(typeof updateCameraView === 'function') updateCameraView();
         } else {
             GameState.ui.cameraSystem?.classList.add('hidden');
+            // Reset Peñones if we close the monitor
+            if(AIManager.positions['peñones'] === 'cam_all') {
+                AIManager.positions['peñones'] = 'cam1';
+            }
         }
         updateUsage();
     }
+
 
     document.getElementById('btn-camera')?.addEventListener('click', toggleCamera);
     document.getElementById('btn-camera-close')?.addEventListener('click', toggleCamera);
@@ -298,9 +303,14 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.cam-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             GameState.currentCamera = btn.dataset.cam;
+            // Reset Peñones if we switch cameras
+            if(AIManager.positions['peñones'] === 'cam_all') {
+                AIManager.positions['peñones'] = 'cam1';
+            }
             updateCameraView();
         });
     });
+
 
     // Initialize stars
     const starsDiv = document.getElementById('menu-stars');
