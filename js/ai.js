@@ -1,5 +1,5 @@
 const NightProgression = {
-    1: { andre: 1, gabo: 1, cardo: 0, gian: 0, piar: 0, alfaro: 0, peñones: 0, picock: 0 }, // Very slow
+    1: { andre: 1, gabo: 1, cardo: 0, gian: 0, piar: 0, alfaro: 0, peñones: 0, picock: 0 }, 
     2: { andre: 3, gabo: 3, cardo: 2, gian: 2, piar: 0, alfaro: 0, peñones: 0, picock: 0 },
     3: { andre: 5, gabo: 4, cardo: 4, gian: 4, piar: 3, alfaro: 0, peñones: 0, picock: 0 },
     4: { andre: 7, gabo: 7, cardo: 6, gian: 6, piar: 5, alfaro: 4, peñones: 0, picock: 2 },
@@ -8,26 +8,24 @@ const NightProgression = {
 };
 
 const EnemyPaths = {
-    // Escuadron Ventana Izquierda
-    andre: ['cam1', 'cam3', 'cam5', 'door_left'],
-    gabo: ['cam1', 'cam5', 'door_left'],
-    // Escuadron Ventana Derecha
-    cardo: ['cam2', 'cam4', 'cam6', 'door_right'],
-    gian: ['cam2', 'cam6', 'door_right'],
-    // Escuadron Ducto Superior
-    piar: ['cam8', 'cam5', 'duct'],
-    alfaro: ['cam8', 'cam6', 'duct'],
-    picock: ['cam8', 'cam7', 'duct'],
-    // Phantom Office
-    peñones: ['hidden', 'cam_all', 'office'] 
+    // Puertas (Lineal: 8/6 -> 7 -> 5 -> 4 -> 3 -> 2 -> 1 -> Puerta)
+    andre: ['cam8', 'cam7', 'cam5', 'cam4', 'cam3', 'cam2', 'cam1', 'door_left'],
+    gabo: ['cam8', 'cam7', 'cam5', 'cam4', 'cam3', 'cam2', 'cam1', 'door_left'],
+    cardo: ['cam6', 'cam7', 'cam5', 'cam4', 'cam3', 'cam2', 'cam1', 'door_right'],
+    gian: ['cam6', 'cam7', 'cam5', 'cam4', 'cam3', 'cam2', 'cam1', 'door_right'],
+    
+    // Ductos (Rápido: 8/6 -> 1 -> Ducto)
+    piar: ['cam8', 'cam1', 'duct'],
+    alfaro: ['cam6', 'cam1', 'duct'],
+    picock: ['cam6', 'cam1', 'duct'],
+    
+    // Peñones (Cam 1 -> Oficina)
+    peñones: ['cam1', 'office'] 
 };
 
 const EnemyStarts = {
-    // Escuadrón de la Cámara 8 (Lejos)
     andre: 'cam8', gabo: 'cam8', piar: 'cam8', 
-    // Escuadrón de la Cámara 6 (Medio)
     cardo: 'cam6', gian: 'cam6', alfaro: 'cam6', picock: 'cam6',
-    // Inactivo
     peñones: 'cam1'
 };
 
@@ -39,13 +37,8 @@ const AIManager = {
     ductState: null,
     interval: null,
     init: function() {
-        let diffs;
-        if (GameState.night === 7) {
-            diffs = window.CustomAI || NightProgression[6];
-        } else {
-            let n = GameState.night > 6 ? 6 : GameState.night;
-            diffs = NightProgression[n];
-        }
+        let n = GameState.night > 6 ? 6 : GameState.night;
+        let diffs = (GameState.night === 7 && window.CustomAI) ? window.CustomAI : NightProgression[n];
         
         Object.keys(diffs).forEach(enemy => {
             AIManager.positions[enemy] = EnemyStarts[enemy];
@@ -57,20 +50,18 @@ const AIManager = {
         AIManager.ductState = null;
         
         if (AIManager.interval) clearInterval(AIManager.interval);
-        // Ticks más lentos para dar tiempo a moverse por cámaras (6 segundos entre intentos)
-        AIManager.interval = setInterval(AIManager.tick, 6000);
+        AIManager.interval = setInterval(AIManager.tick, 5000); // 5s tick for balanced gameplay
     },
     tick: function() {
-        if (GameState.gameOver) return;
+        if (GameState.gameOver || !GameState.gameStarted) return;
         
-        let night = GameState.night > 6 ? 6 : GameState.night;
-        let diffs = NightProgression[night];
+        let n = GameState.night > 6 ? 6 : GameState.night;
+        let diffs = (GameState.night === 7 && window.CustomAI) ? window.CustomAI : NightProgression[n];
         
         Object.keys(diffs).forEach(enemy => {
             let level = diffs[enemy];
-            if (level === 0) return; // Fuera de servicio esta noche
+            if (level === 0) return;
             
-            // Calculo probabilidad / 20 puntos
             let rand = Math.floor(Math.random() * 20) + 1;
             if (rand <= level) {
                 moveEnemy(enemy);
@@ -84,67 +75,82 @@ function moveEnemy(enemy) {
     let path = EnemyPaths[enemy];
     let currentIndex = path.indexOf(currentPos);
     
+    // Peñones Special Activation
+    if(enemy === 'peñones' && currentPos === 'cam1') {
+        if(Math.random() > 0.3) return; // Only 30% chance to leave cam1
+    }
+
     if (currentIndex === path.length - 1) {
-        checkDefense(enemy, currentPos);
+        // Already at limit, check defense again if not already handled
+        return; 
     } else {
         let nextPos = path[currentIndex + 1];
         
-        // Traffic Control - Evitar ataques triplicados al mismo punto ciego
+        // Traffic control
         if (nextPos === 'door_left' && AIManager.doorLeftState) return;
         if (nextPos === 'door_right' && AIManager.doorRightState) return;
         if (nextPos === 'duct' && AIManager.ductState) return;
-        if (nextPos === 'office' && AIManager.officeState.length > 0) return;
+        if (nextPos === 'office' && AIManager.officeState.includes(enemy)) return;
 
+        AIManager.positions[enemy] = nextPos;
+        
         if (nextPos === 'door_left' || nextPos === 'door_right' || nextPos === 'duct' || nextPos === 'office') {
-            AIManager.positions[enemy] = nextPos;
             attackOffice(enemy, nextPos);
-        } else {
-            AIManager.positions[enemy] = nextPos;
-            if(GameState.isMonitorUp) updateCameraView(); 
+        } else if(GameState.isMonitorUp) {
+            updateCameraView(); 
         }
     }
 }
 
 function attackOffice(enemy, from) {
     if(from === 'office' || from === 'duct') {
-        AIManager.officeState.push(enemy);
+        if(!AIManager.officeState.includes(enemy)) AIManager.officeState.push(enemy);
         if (from === 'duct') AIManager.ductState = enemy;
 
-        let el = from === 'duct' ? document.getElementById('duct-character') : document.getElementById('office-character');
-        el.src = `assets/img/${enemy}.png`;
-        el.classList.remove('hidden');
+        let el = (from === 'duct') ? document.getElementById('duct-character') : document.getElementById('office-character');
+        if(el) {
+            el.src = `assets/img/${enemy}.png`;
+            el.classList.remove('hidden');
+        }
         
-        // Tiempo de reacción: 5 segundos para poner máscara
-        setTimeout(() => { checkDefense(enemy, from); }, 5000); 
+        // Time to react (5s)
+        setTimeout(() => { 
+            if(AIManager.officeState.includes(enemy)) checkDefense(enemy, from); 
+        }, 5000); 
 
-    } else if (from === 'door_left') {
-        AIManager.doorLeftState = enemy;
-        document.getElementById('door-left-character').src = `assets/img/${enemy}.png`;
-        document.getElementById('door-left-character').classList.remove('hidden');
-        // El jugador tiene 5 SEGUNDOS para cerrar su puerta
-        setTimeout(() => { checkDoorDefense(enemy, 'left'); }, 5000); 
+    } else if (from === 'door_left' || from === 'door_right') {
+        let side = from === 'door_left' ? 'left' : 'right';
+        if(side === 'left') AIManager.doorLeftState = enemy;
+        else AIManager.doorRightState = enemy;
 
-    } else if (from === 'door_right') {
-        AIManager.doorRightState = enemy;
-        document.getElementById('door-right-character').src = `assets/img/${enemy}.png`;
-        document.getElementById('door-right-character').classList.remove('hidden');
-        setTimeout(() => { checkDoorDefense(enemy, 'right'); }, 5000); 
+        let el = document.getElementById(`door-${side}-character`);
+        if(el) {
+            el.src = `assets/img/${enemy}.png`;
+            // Character stays invisible until light is toggled (managed in main.js)
+        }
+        
+        setTimeout(() => { checkDoorDefense(enemy, side); }, 5000); 
     }
 }
 
 function checkDefense(enemy, from) {
+    if (GameState.gameOver) return;
     if (GameState.isMaskOn) {
-        // Bloqueo exitoso: Se quedan 4.5 segundos observándote y luego se van
+        // Success: Wait and leave
         setTimeout(() => {
+            if(!GameState.isMaskOn) { // They got you while retreating
+                triggerJumpscare(`assets/img/${enemy}.png`);
+                return;
+            }
             AIManager.officeState = AIManager.officeState.filter(e => e !== enemy);
             if(from === 'duct') {
-                document.getElementById('duct-character').classList.add('hidden');
                 AIManager.ductState = null;
+                document.getElementById('duct-character')?.classList.add('hidden');
             } else {
-                document.getElementById('office-character').classList.add('hidden');
+                document.getElementById('office-character')?.classList.add('hidden');
             }
             AIManager.positions[enemy] = EnemyStarts[enemy]; 
-        }, 4500);
+        }, 4000);
     } else {
         triggerJumpscare(`assets/img/${enemy}.png`);
     }
@@ -155,23 +161,22 @@ function checkDoorDefense(enemy, side) {
     let closed = side === 'left' ? GameState.leftDoorClosed : GameState.rightDoorClosed;
     
     if (closed) {
-        // Bloqueo exitoso: Se quedan intentando entrar y luego se van
-        let stayTime = 0;
-        const checkStillClosed = setInterval(() => {
-            stayTime += 500;
+        // Block success: Must STAY closed for 4 seconds
+        let stayCounter = 0;
+        const persistenceTimer = setInterval(() => {
+            stayCounter += 500;
             let currentClosed = side === 'left' ? GameState.leftDoorClosed : GameState.rightDoorClosed;
             
-            // Si abren la puerta mientras el animatrónico sigue ahí -> MUERTE
             if (!currentClosed && !GameState.gameOver) {
-                clearInterval(checkStillClosed);
+                clearInterval(persistenceTimer);
                 triggerJumpscare(`assets/img/${enemy}.png`);
             }
             
-            if (stayTime >= 4000) { // Se van tras 4 segundos
-                clearInterval(checkStillClosed);
+            if (stayCounter >= 4000) {
+                clearInterval(persistenceTimer);
                 if (side === 'left') AIManager.doorLeftState = null;
                 else AIManager.doorRightState = null;
-                document.getElementById(`door-${side}-character`).classList.add('hidden');
+                document.getElementById(`door-${side}-character`)?.classList.add('hidden');
                 AIManager.positions[enemy] = EnemyStarts[enemy];
             }
         }, 500);
@@ -179,4 +184,3 @@ function checkDoorDefense(enemy, side) {
         triggerJumpscare(`assets/img/${enemy}.png`);
     }
 }
-
