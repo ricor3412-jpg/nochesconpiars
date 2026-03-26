@@ -158,28 +158,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    document.getElementById('btn-extras').addEventListener('click', () => {
+    document.getElementById('btn-extras')?.addEventListener('click', () => {
         document.getElementById('extras-screen').classList.remove('hidden');
         renderExtras();
     });
 
-    document.getElementById('btn-close-extras').addEventListener('click', () => {
+    document.getElementById('btn-close-extras')?.addEventListener('click', () => {
         document.getElementById('extras-screen').classList.add('hidden');
     });
 
-    document.getElementById('btn-night-6').addEventListener('click', () => {
+    document.getElementById('btn-night-6')?.addEventListener('click', () => {
         GameState.night = 6;
         startGame();
     });
 
-    document.getElementById('btn-custom-night').addEventListener('click', () => {
+    document.getElementById('btn-custom-night')?.addEventListener('click', () => {
         document.getElementById('custom-night-screen').classList.remove('hidden');
         renderCustomNight();
     });
 
-    document.getElementById('btn-close-custom').addEventListener('click', () => {
+    document.getElementById('btn-close-custom')?.addEventListener('click', () => {
         document.getElementById('custom-night-screen').classList.add('hidden');
     });
+
 
     window.CustomAI = { andre: 0, gabo: 0, cardo: 0, gian: 0, piar: 0, alfaro: 0, picock: 0, peñones: 0 };
 
