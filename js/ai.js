@@ -14,10 +14,10 @@ const EnemyPaths = {
     cardo: ['cam6', 'cam7', 'cam5', 'cam4', 'cam3', 'cam2', 'cam1', 'door_right'],
     gian: ['cam6', 'cam7', 'cam5', 'cam4', 'cam3', 'cam2', 'cam1', 'door_right'],
     
-    // Ductos (Linear: 7 -> 4 -> 5 -> 1 -> Ducto)
+    // Ductos (Linear: 7 -> 4 -> 5 -> 1 -> Conducto/Puerta)
     piar: ['cam8', 'cam7', 'cam4', 'cam5', 'cam1', 'duct'],
     alfaro: ['cam6', 'cam7', 'cam4', 'cam5', 'cam1', 'duct'],
-    picock: ['cam6', 'cam7', 'cam4', 'cam5', 'cam1', 'duct'],
+    picock: ['cam6', 'cam7', 'cam4', 'cam5', 'cam1', 'door_right'],
     
     // Peñones (Special: Cam 1 -> CAM_ALL)
     peñones: ['cam1', 'cam_all'] 
@@ -108,7 +108,11 @@ function moveEnemy(enemy) {
 }
 
 function attackOffice(enemy, from) {
+    // FORCE UI REFRESH ON ARRIVAL - Universal Visibility
+    setTimeout(() => { if(typeof window.updateOfficeVisuals === 'function') window.updateOfficeVisuals(); }, 50);
+
     if(from === 'office' || from === 'duct') {
+
         if (from === 'duct') {
             AIManager.ductState = enemy;
             let el = document.getElementById('duct-character');
@@ -163,7 +167,7 @@ function attackOffice(enemy, from) {
 function checkDefense(enemy, from) {
     if (GameState.gameOver) return;
     if (GameState.isMaskOn) {
-        // Success: Wait and leave
+        // Success: Wait and leave (Faster retreat)
         setTimeout(() => {
             if(!GameState.isMaskOn) { // They got you while retreating
                 triggerJumpscare(`assets/img/${enemy}.png`);
@@ -177,7 +181,9 @@ function checkDefense(enemy, from) {
                 document.getElementById('office-character')?.classList.add('hidden');
             }
             AIManager.positions[enemy] = EnemyStarts[enemy]; 
-        }, 4000);
+            if(typeof window.updateOfficeVisuals === 'function') window.updateOfficeVisuals();
+        }, 2500);
+
     } else {
         triggerJumpscare(`assets/img/${enemy}.png`);
     }

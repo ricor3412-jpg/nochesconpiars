@@ -132,6 +132,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+    document.getElementById('door-right-character')?.addEventListener('click', (e) => {
+        if (e.target.src.includes('picock')) {
+            if(!AIManager.picockClicks) AIManager.picockClicks = 0;
+            AIManager.picockClicks++;
+            if(typeof AudioSynth !== 'undefined') AudioSynth.playBeep();
+            
+            if (AIManager.picockClicks >= 3) {
+                AIManager.picockClicks = 0;
+                if(typeof retreatEnemy === 'function') retreatEnemy("picock");
+            }
+        }
+    });
+
     document.getElementById('btn-mask')?.addEventListener('click', () => {
         if(GameState.gameOver || GameState.power <= 0) return;
         GameState.isMaskOn = !GameState.isMaskOn;
@@ -345,11 +358,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.retreatEnemy = function(enemy) {
         AIManager.positions[enemy] = EnemyStarts[enemy];
+        AIManager.picockClicks = 0;
         if (AIManager.ductState === enemy) {
             AIManager.ductState = null;
             document.getElementById('duct-character')?.classList.add('hidden');
         }
+        if (AIManager.doorLeftState === enemy) AIManager.doorLeftState = null;
+        if (AIManager.doorRightState === enemy) AIManager.doorRightState = null;
+        
+        if(typeof updateOfficeVisuals === 'function') updateOfficeVisuals();
     }
+
 
     window.startAI = function() {
         if(typeof AIManager !== 'undefined' && AIManager.init) {
