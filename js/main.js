@@ -255,8 +255,10 @@ document.addEventListener('DOMContentLoaded', () => {
     window.updateOfficeVisuals = function() {
         const leftEl = document.getElementById('door-left-character');
         const rightEl = document.getElementById('door-right-character');
-        if(!leftEl || !rightEl) return;
+        const officeEl = document.getElementById('office-character');
+        if(!leftEl || !rightEl || !officeEl) return;
 
+        // Hallway Lights
         if (GameState.leftLightOn && AIManager.doorLeftState) {
             leftEl.src = `assets/img/${AIManager.doorLeftState}.png`;
             leftEl.classList.remove('hidden');
@@ -270,7 +272,16 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             rightEl.classList.add('hidden');
         }
+
+        // Office (Peñones or others who entered)
+        if (AIManager.officeState.length > 0) {
+            officeEl.src = `assets/img/${AIManager.officeState[0]}.png`;
+            officeEl.classList.remove('hidden');
+        } else {
+            officeEl.classList.add('hidden');
+        }
     }
+
 
     window.checkOfficeDefense = function() {
         if (!GameState.isMaskOn && AIManager.officeState.length > 0) {
