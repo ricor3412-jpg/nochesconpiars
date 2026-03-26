@@ -304,14 +304,16 @@ document.addEventListener('DOMContentLoaded', () => {
             rightEl.classList.add('hidden');
         }
 
-        // Office (Peñones or others who entered)
-        if (AIManager.officeState.length > 0) {
-            officeEl.src = `assets/img/${AIManager.officeState[0]}.png`;
+        // Office (Peñones or others who entered - ONLY if not in duct)
+        const enemiesInOffice = AIManager.officeState.filter(e => e !== AIManager.ductState);
+        if (enemiesInOffice.length > 0) {
+            officeEl.src = `assets/img/${enemiesInOffice[0]}.png`;
             officeEl.classList.remove('hidden');
         } else {
             officeEl.classList.add('hidden');
         }
     }
+
 
 
 

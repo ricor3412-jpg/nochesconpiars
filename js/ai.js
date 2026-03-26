@@ -19,9 +19,10 @@ const EnemyPaths = {
     alfaro: ['cam6', 'cam7', 'cam4', 'cam5', 'cam1', 'duct'],
     picock: ['cam6', 'cam7', 'cam4', 'cam5', 'cam1', 'duct'],
     
-    // Peñones (Special: Cam 1 -> CAM_ALL -> Office)
-    peñones: ['cam1', 'cam_all', 'office'] 
+    // Peñones (Special: Cam 1 -> CAM_ALL)
+    peñones: ['cam1', 'cam_all'] 
 };
+
 
 
 const EnemyStarts = {
@@ -108,14 +109,22 @@ function moveEnemy(enemy) {
 
 function attackOffice(enemy, from) {
     if(from === 'office' || from === 'duct') {
-        if(!AIManager.officeState.includes(enemy)) AIManager.officeState.push(enemy);
-        if (from === 'duct') AIManager.ductState = enemy;
-
-        let el = (from === 'duct') ? document.getElementById('duct-character') : document.getElementById('office-character');
-        if(el) {
-            el.src = `assets/img/${enemy}.png`;
-            el.classList.remove('hidden');
+        if (from === 'duct') {
+            AIManager.ductState = enemy;
+            let el = document.getElementById('duct-character');
+            if(el) {
+                el.src = `assets/img/${enemy}.png`;
+                el.classList.remove('hidden');
+            }
+        } else {
+            if(!AIManager.officeState.includes(enemy)) AIManager.officeState.push(enemy);
+            let el = document.getElementById('office-character');
+            if(el) {
+                el.src = `assets/img/${enemy}.png`;
+                el.classList.remove('hidden');
+            }
         }
+
         
         // Time to react (5s)
         setTimeout(() => { 
