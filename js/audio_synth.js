@@ -123,12 +123,13 @@ const AudioSynth = {
         o.type = 'sine';
         o.frequency.setValueAtTime(80, ctx.currentTime);
         o.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.2);
-        g.gain.setValueAtTime(0.2, ctx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+        g.gain.setValueAtTime(0.8, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+        
         o.connect(g);
         g.connect(ctx.destination);
         o.start();
-        o.stop(ctx.currentTime + 0.2);
+        o.stop(ctx.currentTime + 0.3);
     },
 
     playBeep: function() {

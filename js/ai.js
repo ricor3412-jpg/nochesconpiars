@@ -23,8 +23,6 @@ const EnemyPaths = {
     peñones: ['cam1', 'cam_all'] 
 };
 
-
-
 const EnemyStarts = {
     andre: 'cam8', gabo: 'cam8', piar: 'cam8', 
     cardo: 'cam6', gian: 'cam6', alfaro: 'cam6', picock: 'cam6',
@@ -37,6 +35,7 @@ const AIManager = {
     doorLeftState: null,
     doorRightState: null,
     ductState: null,
+    picockClicks: 0,
     interval: null,
     init: function() {
         let n = GameState.night > 6 ? 6 : GameState.night;
@@ -50,9 +49,10 @@ const AIManager = {
         AIManager.doorLeftState = null;
         AIManager.doorRightState = null;
         AIManager.ductState = null;
+        AIManager.picockClicks = 0;
         
         if (AIManager.interval) clearInterval(AIManager.interval);
-        AIManager.interval = setInterval(AIManager.tick, 5000); // 5s tick for balanced gameplay
+        AIManager.interval = setInterval(AIManager.tick, 5000); 
     },
     tick: function() {
         if (GameState.gameOver || !GameState.gameStarted) return;
@@ -75,115 +75,78 @@ const AIManager = {
 function moveEnemy(enemy) {
     if(typeof AudioSynth !== 'undefined') AudioSynth.playStep();
     let currentPos = AIManager.positions[enemy];
-
     let path = EnemyPaths[enemy];
     let currentIndex = path.indexOf(currentPos);
     
     // Peñones Special Activation
     if(enemy === 'peñones' && currentPos === 'cam1') {
-        if(Math.random() > 0.3) return; // Only 30% chance to leave cam1
+        if(Math.random() > 0.3) return; 
     }
 
-    if (currentIndex === path.length - 1) {
-        // Already at limit, check defense again if not already handled
-        return; 
-    } else {
-        let nextPos = path[currentIndex + 1];
-        
-        // Traffic control
-        if (nextPos === 'door_left' && AIManager.doorLeftState) return;
-        if (nextPos === 'door_right' && AIManager.doorRightState) return;
-        if (nextPos === 'duct' && AIManager.ductState) return;
-        if (nextPos === 'office' && AIManager.officeState.includes(enemy)) return;
+    if (currentIndex >= path.length - 1) return; 
+    
+    let nextPos = path[currentIndex + 1];
+    
+    // Traffic control
+    if (nextPos === 'door_left' && AIManager.doorLeftState) return;
+    if (nextPos === 'door_right' && AIManager.doorRightState) return;
+    if (nextPos === 'duct' && AIManager.ductState) return;
+    if (nextPos === 'office' && AIManager.officeState.includes(enemy)) return;
 
-        AIManager.positions[enemy] = nextPos;
-        
-        if (nextPos === 'door_left' || nextPos === 'door_right' || nextPos === 'duct' || nextPos === 'office' || nextPos === 'cam_all') {
-            attackOffice(enemy, nextPos);
-        } else if(GameState.isMonitorUp) {
-            updateCameraView(); 
-        }
-
+    AIManager.positions[enemy] = nextPos;
+    
+    if (nextPos === 'door_left' || nextPos === 'door_right' || nextPos === 'duct' || nextPos === 'office' || nextPos === 'cam_all') {
+        attackOffice(enemy, nextPos);
+    } else if(GameState.isMonitorUp) {
+        updateCameraView(); 
     }
 }
 
 function attackOffice(enemy, from) {
-    // FORCE UI REFRESH ON ARRIVAL - Universal Visibility
+    // FORCE UI REFRESH ON ARRIVAL
     setTimeout(() => { if(typeof window.updateOfficeVisuals === 'function') window.updateOfficeVisuals(); }, 50);
 
     if(from === 'office' || from === 'duct') {
-
         if (from === 'duct') {
             AIManager.ductState = enemy;
-            let el = document.getElementById('duct-character');
-            if(el) {
-                el.src = `assets/img/${enemy}.png`;
-                el.classList.remove('hidden');
-            }
         } else {
             if(!AIManager.officeState.includes(enemy)) AIManager.officeState.push(enemy);
-            let el = document.getElementById('office-character');
-            if(el) {
-                el.src = `assets/img/${enemy}.png`;
-                el.classList.remove('hidden');
-            }
         }
-
         
-        // Refresh UI immediately on arrival
-        if(typeof window.updateOfficeVisuals === 'function') window.updateOfficeVisuals();
-        
-        // Time to react (5s)
-
         setTimeout(() => { 
-            if(AIManager.officeState.includes(enemy)) checkDefense(enemy, from); 
+            // Check if still there before trigger
+            if(AIManager.officeState.includes(enemy) || AIManager.ductState === enemy) {
+                checkDefense(enemy, from); 
+            }
         }, 5000); 
 
     } else if (from === 'door_left' || from === 'door_right') {
         let side = from === 'door_left' ? 'left' : 'right';
         if(side === 'left') AIManager.doorLeftState = enemy;
         else AIManager.doorRightState = enemy;
-
-        let el = document.getElementById(`door-${side}-character`);
-        if(el) {
-            el.src = `assets/img/${enemy}.png`;
-            // Character stays invisible until light is toggled (managed in main.js)
-        }
         
         setTimeout(() => { checkDoorDefense(enemy, side); }, 5000); 
     } else if (from === 'cam_all') {
-        // En cam_all, el jugador tiene 3 SEGUNDOS para cambiar de cámara o cerrar el monitor
         if(GameState.isMonitorUp) updateCameraView();
         setTimeout(() => {
             if (AIManager.positions['peñones'] === 'cam_all' && GameState.isMonitorUp) {
-                // Sigue en el monitor activado después de 3s -> Muerte
                 triggerJumpscare(`assets/img/peñones.png`);
             }
         }, 3000);
     }
 }
 
-
 function checkDefense(enemy, from) {
     if (GameState.gameOver) return;
     if (GameState.isMaskOn) {
-        // Success: Wait and leave (Faster retreat)
+        // SUCCESS: Centralized retreat via main.js function
         setTimeout(() => {
-            if(!GameState.isMaskOn) { // They got you while retreating
+            if(!GameState.isMaskOn) { 
                 triggerJumpscare(`assets/img/${enemy}.png`);
                 return;
             }
-            AIManager.officeState = AIManager.officeState.filter(e => e !== enemy);
-            if(from === 'duct') {
-                AIManager.ductState = null;
-                document.getElementById('duct-character')?.classList.add('hidden');
-            } else {
-                document.getElementById('office-character')?.classList.add('hidden');
-            }
-            AIManager.positions[enemy] = EnemyStarts[enemy]; 
-            if(typeof window.updateOfficeVisuals === 'function') window.updateOfficeVisuals();
-        }, 2500);
-
+            if(typeof window.retreatEnemy === 'function') window.retreatEnemy(enemy);
+        }, 2000); // Super fast retreat
     } else {
         triggerJumpscare(`assets/img/${enemy}.png`);
     }
@@ -194,7 +157,6 @@ function checkDoorDefense(enemy, side) {
     let closed = side === 'left' ? GameState.leftDoorClosed : GameState.rightDoorClosed;
     
     if (closed) {
-        // Block success: Must STAY closed for 4 seconds
         let stayCounter = 0;
         const persistenceTimer = setInterval(() => {
             stayCounter += 500;
@@ -207,10 +169,7 @@ function checkDoorDefense(enemy, side) {
             
             if (stayCounter >= 4000) {
                 clearInterval(persistenceTimer);
-                if (side === 'left') AIManager.doorLeftState = null;
-                else AIManager.doorRightState = null;
-                document.getElementById(`door-${side}-character`)?.classList.add('hidden');
-                AIManager.positions[enemy] = EnemyStarts[enemy];
+                if(typeof window.retreatEnemy === 'function') window.retreatEnemy(enemy);
             }
         }, 500);
     } else {

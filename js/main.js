@@ -359,15 +359,30 @@ document.addEventListener('DOMContentLoaded', () => {
     window.retreatEnemy = function(enemy) {
         AIManager.positions[enemy] = EnemyStarts[enemy];
         AIManager.picockClicks = 0;
+        
+        // Comprehensive state clearing
         if (AIManager.ductState === enemy) {
             AIManager.ductState = null;
             document.getElementById('duct-character')?.classList.add('hidden');
         }
-        if (AIManager.doorLeftState === enemy) AIManager.doorLeftState = null;
-        if (AIManager.doorRightState === enemy) AIManager.doorRightState = null;
+        
+        AIManager.officeState = AIManager.officeState.filter(e => e !== enemy);
+        if (AIManager.officeState.length === 0) {
+            document.getElementById('office-character')?.classList.add('hidden');
+        }
+
+        if (AIManager.doorLeftState === enemy) {
+            AIManager.doorLeftState = null;
+            document.getElementById('door-left-character')?.classList.add('hidden');
+        }
+        if (AIManager.doorRightState === enemy) {
+            AIManager.doorRightState = null;
+            document.getElementById('door-right-character')?.classList.add('hidden');
+        }
         
         if(typeof updateOfficeVisuals === 'function') updateOfficeVisuals();
     }
+
 
 
     window.startAI = function() {
