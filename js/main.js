@@ -69,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Door & Light Panels ---
     function toggleDoor(side) {
         if (GameState.power <= 0 || GameState.gameOver) return;
+        if(typeof AudioSynth !== 'undefined') AudioSynth.playDoor();
         const isLeft = side === 'left';
         if(isLeft) GameState.leftDoorClosed = !GameState.leftDoorClosed;
         else GameState.rightDoorClosed = !GameState.rightDoorClosed;
@@ -93,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function toggleLight(side) {
         if (GameState.power <= 0 || GameState.gameOver) return;
+        if(typeof AudioSynth !== 'undefined') AudioSynth.playBeep();
         const isLeft = side === 'left';
         if(isLeft) GameState.leftLightOn = true;
         else GameState.rightLightOn = true;
@@ -118,6 +120,18 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-light-right')?.addEventListener('mouseleave', () => offLight('right'));
 
     // --- Mask & Cameras ---
+    document.getElementById('duct-character')?.addEventListener('click', (e) => {
+        if (e.target.src.includes('picock')) {
+            if(!AIManager.picockClicks) AIManager.picockClicks = 0;
+            AIManager.picockClicks++;
+            if(typeof AudioSynth !== 'undefined') AudioSynth.playBeep();
+            
+            if (AIManager.picockClicks >= 3) {
+                AIManager.picockClicks = 0;
+                if(typeof retreatEnemy === 'function') retreatEnemy("picock");
+            }
+        }
+    });
     document.getElementById('btn-mask')?.addEventListener('click', () => {
         if(GameState.gameOver || GameState.power <= 0) return;
         GameState.isMaskOn = !GameState.isMaskOn;

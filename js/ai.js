@@ -126,7 +126,11 @@ function attackOffice(enemy, from) {
         }
 
         
+        // Refresh UI immediately on arrival
+        if(typeof window.updateOfficeVisuals === 'function') window.updateOfficeVisuals();
+        
         // Time to react (5s)
+
         setTimeout(() => { 
             if(AIManager.officeState.includes(enemy)) checkDefense(enemy, from); 
         }, 5000); 
