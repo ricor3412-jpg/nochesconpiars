@@ -1,0 +1,239 @@
+@font-face {
+    font-family: 'FNAF';
+    src: local('Consolas'), local('Courier New');
+}
+
+* { box-sizing: border-box; user-select: none; font-family: 'FNAF', monospace; margin: 0; padding: 0; }
+
+body { background-color: #000; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+
+/* Fixed proportional aspect ratio */
+#game-container {
+    width: 100%; max-width: 1280px; aspect-ratio: 16 / 9;
+    position: relative; overflow: hidden; background: #000;
+}
+
+#game-container.crt::after {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 1000;
+    pointer-events: none;
+    background-size: 100% 4px, 3px 100%;
+}
+
+.camera-static {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: url('https://media.giphy.com/media/oEI9uWUicn_BK/giphy.gif'); /* Placeholder for noise if no assets */
+    background-size: cover;
+    opacity: 0.1;
+    z-index: 2;
+    pointer-events: none;
+}
+
+@keyframes flicker {
+    0% { opacity: 1; }
+    5% { opacity: 0.8; }
+    10% { opacity: 1; }
+    15% { opacity: 0.9; }
+    20% { opacity: 1; }
+    100% { opacity: 1; }
+}
+
+.flicker-active {
+    animation: flicker 0.2s infinite;
+}
+
+.crt::before {
+    content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 50; background-size: 100% 2px, 3px 100%; pointer-events: none; opacity: 0.8;
+}
+
+.screen { position: absolute; top:0; left:0; width: 100%; height: 100%; z-index: 40; }
+.hidden { display: none !important; }
+
+/* Main Menu */
+#main-menu { background: #000; }
+.menu-logo { width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; z-index: 41; filter: contrast(1.1) brightness(0.7); }
+.invisible-hitbox { 
+    position: absolute; 
+    z-index: 43; 
+    background: transparent; 
+    border: none;
+    cursor: pointer; 
+    color: transparent; 
+}
+.invisible-hitbox:hover { background: rgba(255,255,255,0.05); }
+
+.menu-btn-text {
+    background: none;
+    border: none;
+    color: white;
+    font-family: 'FNAF', Courier, monospace;
+    cursor: pointer;
+    text-shadow: 2px 2px 5px black;
+    transition: all 0.2s;
+    text-transform: uppercase;
+}
+.menu-btn-text:hover {
+    color: #fff;
+    text-shadow: 0 0 10px white, 0 0 20px white;
+    transform: scale(1.05) translateX(10px);
+}
+.locked-btn { cursor: not-allowed; }
+
+#night-menu-text { position: absolute; bottom: 5%; right: 5%; font-size: 4dvw; z-index: 42; text-shadow: 2px 2px 0 #000; opacity: 0.8; }
+
+
+#instructions-screen { background: #111; padding: 50px; font-size: 1.5vw; z-index: 45; display: flex; flex-direction: column; justify-content: center;}
+
+.static-overlay { position: absolute; top:0; left:0; width: 100%; height: 100%; background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFElEQVQIW2NkYGD4z8DAwMgAI0AMDA4LA/y/8+AAAAAASUVORK5CYII=') repeat; opacity: 0.1; z-index: 40; }
+
+/* Office */
+#office-scene { position: absolute; width: 100%; height: 100%; overflow: hidden; z-index: 10; }
+
+#office-view {
+    position: absolute; width: 125%; height: 100%;
+    left: 0; top: 0; transition: transform 0.15s ease-out;
+}
+#office-bg { width: 100%; height: 100%; object-fit: cover; position: absolute; z-index: 1; }
+
+/* Door panels */
+.door-panel {
+    position: absolute; top: 45%; transform: translateY(-50%); width: 5%; height: 35%;
+    background: linear-gradient(to right, #666, #aaa 20%, #888 50%, #555);
+    border: 3px solid #222; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-evenly; align-items: center; box-shadow: 10px 10px 20px rgba(0,0,0,0.9), inset -2px -2px 5px rgba(0,0,0,0.5); z-index: 12;
+}
+#panel-left { left: 4%; }
+#panel-right { right: 4%; }
+
+.panel-btn { width: 70%; height: 30%; border-radius: 5px; cursor: pointer; font-size: 0.8vw; font-weight: bold; display: flex; justify-content: center; align-items: center; color: white; border: 2px solid #111; box-shadow: 0 4px 6px rgba(0,0,0,0.6); transition: all 0.1s; }
+.panel-btn:active { transform: scale(0.95); }
+.btn-door { background: #800; border-top: 2px solid #a00; border-left: 2px solid #a00; }
+.btn-door.active { background: #f00; box-shadow: 0 0 15px red; }
+.btn-light { background: #ccc; color: black; border-top: 2px solid #eee; border-left: 2px solid #eee; }
+.btn-light.active { background: #fff; box-shadow: 0 0 20px white; }
+
+/* Metallic shutter doors perfectly aligned to visual frames */
+.door {
+    position: absolute; width: 15%; height: 80%;
+    background: repeating-linear-gradient(#333, #333 10px, #1a1a1a 10px, #1a1a1a 20px);
+    border: 5px solid #111; border-bottom: 10px solid #222; top: -100%; z-index: 5; transition: top 0.25s linear; box-shadow: 10px 0 20px rgba(0,0,0,0.9);
+}
+#door-left { left: 9%; width: 14.5%; }
+#door-right { right: 8.5%; width: 14%; }
+.door.closed { top: 10%; }
+
+/* Characters fixed heights and bottom alignments */
+.duct { position: absolute; top: 0; left: 35%; width: 30%; height: 18%; background: rgba(0,0,0,0.9); border: 4px solid #333; border-top: none; z-index: 6; display: flex; justify-content: center; align-items: flex-end; overflow: hidden; box-shadow: inset 0 0 20px black; }
+.character { position: absolute; object-fit: contain; animation: bob 3s infinite ease-in-out; }
+@keyframes bob { 0% { transform: translateY(0); } 50% { transform: translateY(15px); } 100% { transform: translateY(0); } }
+
+#duct-character { width: auto; height: 140%; bottom: -20%; position: relative; z-index: 4; cursor: pointer; }
+#office-character { bottom: 0; left: 50%; transform: translateX(-50%); z-index: 8; height: 95%; animation: none;}
+
+.door-character { bottom: 12%; height: 65%; z-index: 3; }
+#door-left-character { left: 9%; }
+#door-right-character { right: 8%; }
+
+/* Flip Monitor & Mask UI */
+#bottom-bar-container, #bottom-bar-camera {
+    position: absolute; bottom: 2%; left: 10%; width: 80%; height: 10%;
+    display: flex; justify-content: space-between; align-items: center; z-index: 100;
+}
+#bottom-bar-camera { justify-content: flex-end; }
+.monitor-bar {
+    width: 30%; height: 100%; background: rgba(255,255,255,0.15);
+    border: 2px solid rgba(255,255,255,0.5); border-radius: 10px;
+    display: flex; justify-content: center; align-items: center;
+    font-size: 1.8vw; cursor: pointer; transition: background 0.2s; color: white; font-weight: bold;
+}
+.monitor-bar:hover { background: rgba(255,255,255,0.4); }
+
+#mask-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.85) 60%, black 100%); z-index: 20; pointer-events: none; border-radius: 50%; box-shadow: inset 0 0 100px rgba(0,0,0,0.9);}
+
+/* Camera UI */
+#camera-system { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 15; }
+.camera-static { position: absolute; width: 100%; height: 100%; background: repeating-radial-gradient(rgba(0,0,0,0.5) 0 0.0001%, rgba(255,255,255,0.5) 0 0.0002%) 50% 0/2500px 2500px; opacity: 0.15; z-index: 2; pointer-events: none; animation: staticNoise 0.2s infinite; }
+
+#camera-room { position: absolute; width: 100%; height: 100%; background-color: #222; }
+.camera-character { z-index: 1; filter: grayscale(80%) sepia(20%) contrast(1.5) drop-shadow(0 0 10px black); }
+
+.cam-recording { position: absolute; top: 10%; left: 5%; color: red; font-size: 2vw; border: 2px solid red; padding: 5px; animation: blink 1s infinite alternate; }
+@keyframes blink { from { opacity: 1; } to { opacity: 0; } }
+
+.cam-enemy-render.character { position: absolute; z-index: 5; height: 80%; bottom: 5%; left: 50%; transform: translateX(-50%); transition: opacity 0.3s; }
+#office-plushie { 
+    position: absolute; 
+    z-index: 6; 
+    height: 15%; 
+    bottom: 25%; 
+    left: 45%; 
+    cursor: pointer;
+    filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));
+}
+#office-plushie:hover { filter: brightness(1.2) drop-shadow(0 0 10px white); }
+#office-plushie:active { transform: scale(0.9); }
+
+.cam-enemy-render {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 90%;
+    pointer-events: none;
+    filter: brightness(0.7) contrast(1.2);
+}
+
+/* FNAF MAP */
+#minimap { position: absolute; bottom: 5%; right: 5%; width: 35%; height: 60%; padding: 2%; border: 3px solid #ccc; background: rgba(0,0,0,0.8); z-index: 3; display: flex; flex-direction: column; }
+.minimap-title { font-size: 1.2vw; font-weight: bold; text-align: center; border-bottom: 2px solid #555; padding-bottom: 5%; margin-bottom: 5%; }
+.map-grid { display: grid; width: 100%; height: 100%; grid-template-areas: "cam8 cam8 cam6 cam6" "cam7 cam5 cam5 cam4" "cam3 cam3 cam1 cam2" ". . off ."; gap: 5%; }
+.map-room { background: #222; border: 2px solid #555; color: white; display:flex; justify-content:center; align-items:center; font-weight: bold; cursor: pointer; transition: all 0.2s; font-size: 1vw; }
+.map-room.active { background: #fff; color: #000; box-shadow: 0 0 10px white; }
+.map-room:not(.active):hover { background: #444; }
+#room-office { background: #111; cursor: default; }
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #333;
+    border-top: 5px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+/* HUD */
+
+#hud { 
+    position: absolute; 
+    top: 3%; 
+    right: 5%; 
+    z-index: 30; 
+    text-align: right; 
+    font-family: 'Courier New', Courier, monospace;
+    background: rgba(0,0,0,0.5);
+    padding: 10px;
+    border: 1px solid #333;
+    color: #0f0; /* Green digital look */
+}
+#time-display { font-size: 3vw; font-weight: bold; margin-bottom: 5px; }
+#night-display { font-size: 1.5vw; opacity: 0.8; }
+#power-display { color: #f00; font-size: 1.2vw; }
+#usage-display { font-size: 1vw; }
+
+#jumpscare-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; background: black; }
+@keyframes fnaf-jumpscare {
+    0% { transform: scale(1.1) translate(0px, 0px); filter: brightness(1); }
+    25% { transform: scale(1.5) translate(-40px, 30px); filter: brightness(1.4); }
+    50% { transform: scale(1.8) translate(40px, -30px); filter: contrast(1.5) blur(2px); }
+    75% { transform: scale(1.3) translate(-30px, -40px); filter: invert(0.1); }
+    100% { transform: scale(2) translate(30px, 40px); filter: brightness(1.5); }
+}
+#jumpscare-img { width: 100%; height: 100%; object-fit: contain; animation: fnaf-jumpscare 0.04s infinite alternate; }
+#game-over-text { width: 100%; height: 100%; object-fit: contain; position: absolute; z-index: 101;}
