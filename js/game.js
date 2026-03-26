@@ -151,13 +151,9 @@ function triggerJumpscare(imageSrc) {
         imageSrc = 'assets/img/jumscare piars.png';
     }
 
-    const audio = document.getElementById('audio-jumpscare');
-    if(audio) { 
-        audio.src = 'assets/audio/jumpscare.wav';
-        audio.currentTime = 0; 
-        audio.volume = 1.0; 
-        audio.play().catch(e=>console.log(e)); 
-    }
+    // Procedural Jumpscare Audio
+    if(typeof AudioSynth !== 'undefined') AudioSynth.playJumpscare();
+
 
     const scareScreen = document.getElementById('jumpscare-screen');
     const scareImg = document.getElementById('jumpscare-img');

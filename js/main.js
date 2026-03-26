@@ -3,8 +3,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     document.getElementById('audio-init-overlay')?.addEventListener('click', () => {
         AudioSynth.init();
+        AudioSynth.playBeep(); // Feedback sound
         document.getElementById('audio-init-overlay').style.display = 'none';
+        AudioSynth.playAmbient(); // Start ambient hum globally
     });
+
 
     // UI Refs - Populate once DOM is ready
     GameState.ui = {
@@ -151,14 +154,17 @@ document.addEventListener('DOMContentLoaded', () => {
         GameState.isMonitorUp = !GameState.isMonitorUp;
         if (GameState.isMonitorUp) {
             GameState.ui.cameraSystem?.classList.remove('hidden');
+            if(typeof AudioSynth !== 'undefined') AudioSynth.playStatic(true);
             if(typeof updateCameraView === 'function') updateCameraView();
         } else {
             GameState.ui.cameraSystem?.classList.add('hidden');
+            if(typeof AudioSynth !== 'undefined') AudioSynth.playStatic(false);
             // Reset Peñones if we close the monitor
             if(AIManager.positions['peñones'] === 'cam_all') {
                 AIManager.positions['peñones'] = 'cam1';
             }
         }
+
         updateUsage();
     }
 
@@ -345,9 +351,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.cam-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            document.querySelectorAll('.cam-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+            if(typeof AudioSynth !== 'undefined') AudioSynth.playBeep();
             GameState.currentCamera = btn.dataset.cam;
+
             // Reset Peñones if we switch cameras
             if(AIManager.positions['peñones'] === 'cam_all') {
                 AIManager.positions['peñones'] = 'cam1';
