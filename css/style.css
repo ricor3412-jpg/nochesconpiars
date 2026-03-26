@@ -53,7 +53,7 @@ body { background-color: #000; color: white; display: flex; justify-content: cen
     z-index: 50; background-size: 100% 2px, 3px 100%; pointer-events: none; opacity: 0.8;
 }
 
-.screen { position: absolute; top:0; left:0; width: 100%; height: 100%; z-index: 40; }
+.screen { position: absolute; top:0; left:0; width: 100%; height: 100%; z-index: 40; pointer-events: none; }
 .hidden { display: none !important; }
 
 /* Main Menu */
@@ -91,7 +91,7 @@ body { background-color: #000; color: white; display: flex; justify-content: cen
 
 #instructions-screen { background: #111; padding: 50px; font-size: 1.5vw; z-index: 45; display: flex; flex-direction: column; justify-content: center;}
 
-.static-overlay { position: absolute; top:0; left:0; width: 100%; height: 100%; background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFElEQVQIW2NkYGD4z8DAwMgAI0AMDA4LA/y/8+AAAAAASUVORK5CYII=') repeat; opacity: 0.1; z-index: 40; }
+.static-overlay { position: absolute; top:0; left:0; width: 100%; height: 100%; background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFElEQVQIW2NkYGD4z8DAwMgAI0AMDA4LA/y/8+AAAAAASUVORK5CYII=') repeat; opacity: 0.1; z-index: 40; pointer-events: none; }
 
 /* Office */
 #office-scene { position: absolute; width: 100%; height: 100%; overflow: hidden; z-index: 10; }

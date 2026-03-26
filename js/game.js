@@ -151,7 +151,12 @@ function triggerJumpscare(imageSrc) {
     }
 
     const audio = document.getElementById('audio-jumpscare');
-    if(audio) { audio.currentTime = 0; audio.volume = 1.0; audio.play().catch(e=>console.log(e)); }
+    if(audio) { 
+        audio.src = 'assets/audio/jumpscare.wav'; // Fix missing audio6.wav
+        audio.currentTime = 0; 
+        audio.volume = 1.0; 
+        audio.play().catch(e=>console.log(e)); 
+    }
 
     const scareScreen = document.getElementById('jumpscare-screen');
     document.getElementById('jumpscare-img').src = imageSrc;
