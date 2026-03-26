@@ -151,17 +151,32 @@ function checkDefense(enemy, from) {
 }
 
 function checkDoorDefense(enemy, side) {
+    if (GameState.gameOver) return;
     let closed = side === 'left' ? GameState.leftDoorClosed : GameState.rightDoorClosed;
+    
     if (closed) {
-        // Bloqueo exitoso: Se quedan 4.5 segundos intentando entrar y luego se van
-        setTimeout(() => {
-            if(side === 'left') AIManager.doorLeftState = null;
-            else AIManager.doorRightState = null;
+        // Bloqueo exitoso: Se quedan intentando entrar y luego se van
+        let stayTime = 0;
+        const checkStillClosed = setInterval(() => {
+            stayTime += 500;
+            let currentClosed = side === 'left' ? GameState.leftDoorClosed : GameState.rightDoorClosed;
             
-            document.getElementById(`door-${side}-character`).classList.add('hidden');
-            AIManager.positions[enemy] = EnemyStarts[enemy]; 
-        }, 4500);
+            // Si abren la puerta mientras el animatrónico sigue ahí -> MUERTE
+            if (!currentClosed && !GameState.gameOver) {
+                clearInterval(checkStillClosed);
+                triggerJumpscare(`assets/img/${enemy}.png`);
+            }
+            
+            if (stayTime >= 4000) { // Se van tras 4 segundos
+                clearInterval(checkStillClosed);
+                if (side === 'left') AIManager.doorLeftState = null;
+                else AIManager.doorRightState = null;
+                document.getElementById(`door-${side}-character`).classList.add('hidden');
+                AIManager.positions[enemy] = EnemyStarts[enemy];
+            }
+        }, 500);
     } else {
         triggerJumpscare(`assets/img/${enemy}.png`);
     }
 }
+

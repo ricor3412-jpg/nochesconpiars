@@ -4,6 +4,9 @@ const AudioSynth = {
         if (!AudioSynth.ctx) {
             AudioSynth.ctx = new (window.AudioContext || window.webkitAudioContext)();
         }
+        if (AudioSynth.ctx.state === 'suspended') {
+            AudioSynth.ctx.resume();
+        }
     },
     
     playSqueak: function() {
