@@ -35,18 +35,19 @@ function startPhoneCall() {
     if(!script) return;
     
     const subBox = document.getElementById('subtitle-box');
-    subBox.classList.remove('hidden');
-    
-    script.forEach(line => {
-        setTimeout(() => {
-            if(!GameState.gameOver) {
-                if(line.text === "") subBox.classList.add('hidden');
-                else subBox.innerHTML = line.text;
-            } else {
-                subBox.classList.add('hidden');
-            }
-        }, line.time);
-    });
+    if(subBox) {
+        subBox.classList.remove('hidden');
+        script.forEach(line => {
+            setTimeout(() => {
+                if(!GameState.gameOver) {
+                    if(line.text === "") subBox.classList.add('hidden');
+                    else subBox.innerHTML = line.text;
+                } else {
+                    subBox.classList.add('hidden');
+                }
+            }, line.time);
+        });
+    }
 }
 
 function updateUsage() {
@@ -58,22 +59,23 @@ function updateUsage() {
     if (GameState.rightLightOn) usage++;
     GameState.usage = usage;
     
-    let blocks = '';
-    for(let i=0; i<usage; i++) blocks += '🟩';
-    GameState.ui.usageDisplay.innerHTML = `Uso: ${blocks}`;
+    if(GameState.ui.usageDisplay) {
+        let blocks = '';
+        for(let i=0; i<usage; i++) blocks += '🟩';
+        GameState.ui.usageDisplay.innerHTML = `Uso: ${blocks}`;
+    }
 }
 
 function updatePower() {
     if (GameState.power <= 0 || GameState.gameOver || !GameState.gameStarted) return;
     
-    // Scaling drain rates
     const drainRates = [0, 8000, 4500, 2500, 1500, 800];
     const rate = drainRates[GameState.usage] || 8000;
     
     setTimeout(() => {
         if (!GameState.gameOver && GameState.power > 0) {
             GameState.power -= 1;
-            GameState.ui.powerDisplay.innerText = `Energía: ${GameState.power}%`;
+            if(GameState.ui.powerDisplay) GameState.ui.powerDisplay.innerText = `Energía: ${GameState.power}%`;
             
             if (GameState.power <= 0) {
                 powerOutage();
@@ -91,17 +93,17 @@ function powerOutage() {
     GameState.rightLightOn = false;
     GameState.isMonitorUp = false;
     
-    GameState.ui.leftDoor.classList.replace('closed', 'open');
-    GameState.ui.rightDoor.classList.replace('closed', 'open');
+    if(GameState.ui.leftDoor) GameState.ui.leftDoor.className = 'door open';
+    if(GameState.ui.rightDoor) GameState.ui.rightDoor.className = 'door open';
     document.querySelectorAll('.panel-btn').forEach(b => b.classList.remove('active'));
     
-    GameState.ui.cameraSystem.classList.add('hidden');
-    document.getElementById('office-bg').style.filter = 'brightness(0.05)'; 
+    if(GameState.ui.cameraSystem) GameState.ui.cameraSystem.classList.add('hidden');
+    const bg = document.getElementById('office-bg');
+    if(bg) bg.style.filter = 'brightness(0.05)'; 
     
-    // Iniciar secuencia de ojos brillantes
     setTimeout(() => {
         if (GameState.gameOver) return;
-        AudioSynth.playPowerOut(); // "Toreador March" Math-style
+        AudioSynth.playPowerOut(); 
         const eyes = document.createElement('div');
         eyes.style.position = 'absolute';
         eyes.style.left = '10%'; eyes.style.top = '40%';
@@ -110,14 +112,15 @@ function powerOutage() {
         eyes.style.filter = 'blur(5px) drop-shadow(0 0 10px white)';
         eyes.style.zIndex = '100';
         eyes.id = 'power-out-eyes';
-        document.getElementById('office-view').appendChild(eyes);
+        const officeView = document.getElementById('office-view');
+        if(officeView) officeView.appendChild(eyes);
         
         setTimeout(() => {
             if(!GameState.gameOver) {
                 document.getElementById('power-out-eyes')?.remove();
                 triggerJumpscare('assets/img/peñones.png');
             }
-        }, 5000); // 5 segundos de tensión
+        }, 5000); 
     }, 2000);
 }
 
@@ -127,9 +130,8 @@ function updateTime() {
         if (!GameState.gameOver) {
             GameState.time += 1;
             if (GameState.time === 13) GameState.time = 1;
-            GameState.ui.timeDisplay.innerText = `${GameState.time} AM`;
+            if(GameState.ui.timeDisplay) GameState.ui.timeDisplay.innerText = `${GameState.time} AM`;
             
-            // Progressive AI escalation intra-night
             if(window.escalateAI) window.escalateAI();
             
             if (GameState.time === 6) {
@@ -138,36 +140,36 @@ function updateTime() {
                 updateTime();
             }
         }
-    }, 55000); // 55s = 1 in-game hour
+    }, 55000); 
 }
 
 function triggerJumpscare(imageSrc) {
     if(GameState.gameOver) return;
     GameState.gameOver = true;
     
-    // Especial Piar/Alfaro check
     if(imageSrc.includes('piar.png') || imageSrc.includes('alfaro.png')) {
         imageSrc = 'assets/img/jumscare piars.png';
     }
 
     const audio = document.getElementById('audio-jumpscare');
     if(audio) { 
-        audio.src = 'assets/audio/jumpscare.wav'; // Fix missing audio6.wav
+        audio.src = 'assets/audio/jumpscare.wav';
         audio.currentTime = 0; 
         audio.volume = 1.0; 
         audio.play().catch(e=>console.log(e)); 
     }
 
     const scareScreen = document.getElementById('jumpscare-screen');
-    document.getElementById('jumpscare-img').src = imageSrc;
-    scareScreen.classList.remove('hidden');
+    const scareImg = document.getElementById('jumpscare-img');
+    if(scareImg) scareImg.src = imageSrc;
+    if(scareScreen) scareScreen.classList.remove('hidden');
     
     setTimeout(() => {
-        scareScreen.classList.add('hidden');
-        if (Math.random() < 0.2) { // 20% de probabilidad de minijuego
+        if(scareScreen) scareScreen.classList.add('hidden');
+        if (typeof Minigame !== 'undefined' && Math.random() < 0.2) { 
             Minigame.init();
         } else {
-            document.getElementById('game-over-screen').classList.remove('hidden');
+            document.getElementById('game-over-screen')?.classList.remove('hidden');
         }
     }, 2000);
 }
@@ -178,7 +180,6 @@ function winNight() {
     GameState.night += 1;
     localStorage.setItem('cnp_night', GameState.night);
     
-    // Mensaje de victoria tematizado
     if (nightWon === 5) {
         showEnding("Has sobrevivido a la semana reglamentaria. ¡Felicidades por tu cheque de pago!");
     } else if (nightWon === 6) {
@@ -193,61 +194,71 @@ function winNight() {
 }
 
 function showEnding(msg) {
-    document.getElementById('office-scene').classList.add('hidden');
-    document.getElementById('ending-screen').classList.remove('hidden');
-    document.getElementById('ending-msg').innerText = msg;
+    document.getElementById('office-scene')?.classList.add('hidden');
+    const endScreen = document.getElementById('ending-screen');
+    const endMsg = document.getElementById('ending-msg');
+    if(endScreen) endScreen.classList.remove('hidden');
+    if(endMsg) endMsg.innerText = msg;
 }
-
 
 function startGame() {
     const night = GameState.night;
     
-    // 1. Mostrar Periódico con Lore
-    document.getElementById('main-menu').classList.add('hidden');
-    const newsScreen = document.getElementById('newspaper-screen');
-    newsScreen.classList.remove('hidden');
-    
-    // Personalizar texto según la noche (Opcional)
-    if (night === 1) {
-        document.getElementById('news-title').innerText = "GRAN APERTURA DE LOS PIAR";
-        document.getElementById('news-body').innerText = "La pizzería local abre sus puertas con tecnología de punta. Los animatrónicos prometen diversión segura... o eso dicen los rumores del personal nocturno anterior.";
-    } else if (night === 6) {
-        document.getElementById('news-title').innerText = "¡NOCHE FINAL!";
-        document.getElementById('news-body').innerText = "Algo anda muy mal. Los sistemas están al límite y la empresa no se hace responsable de desapariciones. Sobrevive una última vez.";
-    } else {
-        document.getElementById('news-title').innerText = `NOCHE ${night}`;
-        document.getElementById('news-body').innerText = "El turno nocturno continúa. Los incidentes aislados no han detenido la operación. Mantén la calma.";
-    }
+    document.getElementById('main-menu')?.classList.add('hidden');
+    document.getElementById('menu-hitboxes')?.classList.add('hidden'); // CRITICAL FIX
 
-    // Al hacer clic en el periódico -> Pantalla de Carga
-    newsScreen.onclick = () => {
-        newsScreen.classList.add('hidden');
-        const loadScreen = document.getElementById('loading-screen');
-        loadScreen.classList.remove('hidden');
+    const newsScreen = document.getElementById('newspaper-screen');
+    if(newsScreen) {
+        newsScreen.classList.remove('hidden');
         
-        setTimeout(() => {
-            loadScreen.classList.add('hidden');
-            GameState.gameStarted = true;
-            GameState.gameOver = false;
-            GameState.power = 100;
-            GameState.time = 12;
-            document.getElementById('night-display').innerText = `Noche ${GameState.night}`;
-            updateUsage();
+        const title = document.getElementById('news-title');
+        const body = document.getElementById('news-body');
+        
+        if (night === 1) {
+            if(title) title.innerText = "GRAN APERTURA DE LOS PIAR";
+            if(body) body.innerText = "La pizzería local abre sus puertas con tecnología de punta. Los animatrónicos prometen diversión segura... o eso dicen los rumores del personal nocturno anterior.";
+        } else if (night === 6) {
+            if(title) title.innerText = "¡NOCHE FINAL!";
+            if(body) body.innerText = "Algo anda muy mal. Los sistemas están al límite y la empresa no se hace responsable de desapariciones. Sobrevive una última vez.";
+        } else {
+            if(title) title.innerText = `NOCHE ${night}`;
+            if(body) body.innerText = "El turno nocturno continúa. Los incidentes aislados no han detenido la operación. Mantén la calma.";
+        }
+
+        newsScreen.onclick = () => {
+            newsScreen.classList.add('hidden');
+            const loadScreen = document.getElementById('loading-screen');
+            if(loadScreen) loadScreen.classList.remove('hidden');
             
-            document.getElementById('office-scene').classList.remove('hidden');
-            
-            startPhoneCall();
-            updatePower();
-            updateTime();
-            AudioSynth.playAmbient();
-            
-            if (typeof startAI === "function") startAI();
-        }, 3000); // 3 Segundos de carga
-    };
+            setTimeout(() => {
+                if(loadScreen) loadScreen.classList.add('hidden');
+                GameState.gameStarted = true;
+                GameState.gameOver = false;
+                GameState.power = 100;
+                GameState.time = 12;
+                
+                const nightDisp = document.getElementById('night-display');
+                if(nightDisp) nightDisp.innerText = `Noche ${GameState.night}`;
+                
+                updateUsage();
+                
+                document.getElementById('office-scene')?.classList.remove('hidden');
+                
+                startPhoneCall();
+                updatePower();
+                updateTime();
+                if(typeof AudioSynth !== 'undefined') AudioSynth.playAmbient();
+                
+                if (typeof startAI === "function") startAI();
+            }, 3000); 
+        };
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('menu-night-display').innerText = GameState.night;
+    const nightDisp = document.getElementById('menu-night-display');
+    if(nightDisp) nightDisp.innerText = GameState.night;
+    
     document.getElementById('btn-mute')?.addEventListener('click', () => {
         const p1 = document.getElementById('audio-phone1');
         const p2 = document.getElementById('audio-phone2');
