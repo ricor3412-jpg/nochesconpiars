@@ -72,7 +72,9 @@ const AIManager = {
 };
 
 function moveEnemy(enemy) {
+    if(typeof AudioSynth !== 'undefined') AudioSynth.playStep();
     let currentPos = AIManager.positions[enemy];
+
     let path = EnemyPaths[enemy];
     let currentIndex = path.indexOf(currentPos);
     

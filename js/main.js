@@ -1,4 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
+    let maskTimer = null;
+    
+    document.getElementById('audio-init-overlay')?.addEventListener('click', () => {
+        AudioSynth.init();
+        document.getElementById('audio-init-overlay').style.display = 'none';
+    });
+
     // UI Refs - Populate once DOM is ready
     GameState.ui = {
         powerDisplay: document.getElementById('power-display'),
@@ -16,7 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Panning Logic ---
     document.addEventListener('mousemove', (e) => {
-        if (!GameState.gameStarted || GameState.isMonitorUp || GameState.isMaskOn || GameState.gameOver) return;
+        if (!GameState.gameStarted || GameState.isMonitorUp || GameState.gameOver) return;
+
         
         const officeView = document.getElementById('office-view');
         const container = document.getElementById('game-container');
@@ -78,6 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     document.getElementById('btn-door-left')?.addEventListener('click', () => toggleDoor('left'));
     document.getElementById('btn-door-right')?.addEventListener('click', () => toggleDoor('right'));
+
     
     function toggleLight(side) {
         if (GameState.power <= 0 || GameState.gameOver) return;
@@ -119,6 +128,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 GameState.ui.cameraSystem.classList.add('hidden');
                 updateUsage();
             }
+
+            // Auto-remove mask after 10s
+            if(maskTimer) clearTimeout(maskTimer);
+            maskTimer = setTimeout(() => {
+                if(GameState.isMaskOn) document.getElementById('btn-mask').click();
+            }, 10000);
+
         } else {
             GameState.ui.maskOverlay?.classList.add('hidden');
             if(typeof checkOfficeDefense === 'function') checkOfficeDefense();
@@ -226,13 +242,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const camRoom = document.getElementById('camera-room');
         if(!camRoom) return;
 
+        // PEÑONES CAM_ALL PHANTOM (Special Mechanic)
         if (AIManager.positions['peñones'] === 'cam_all') {
             camRoom.style.backgroundImage = `url('assets/img/peñones.png')`;
             camRoom.style.backgroundSize = 'contain';
             camRoom.style.backgroundPosition = 'center';
             camRoom.style.backgroundRepeat = 'no-repeat';
             camRoom.innerHTML = ''; 
+
+            // Peñones reaction timer: 3 seconds to close monitor
+            if(!AIManager.peñonesTimer) {
+                AIManager.peñonesTimer = setTimeout(() => {
+                    if(AIManager.positions['peñones'] === 'cam_all' && GameState.isMonitorUp) {
+                        triggerJumpscare('assets/img/peñones.png');
+                    }
+                }, 3000);
+            }
             return;
+        } else {
+            if(AIManager.peñonesTimer) {
+                clearTimeout(AIManager.peñonesTimer);
+                AIManager.peñonesTimer = null;
+            }
         }
 
         camRoom.style.backgroundImage = `url('assets/img/${GameState.currentCamera}.png')`;
@@ -258,15 +289,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const officeEl = document.getElementById('office-character');
         if(!leftEl || !rightEl || !officeEl) return;
 
-        // Hallway Lights
-        if (GameState.leftLightOn && AIManager.doorLeftState) {
+        // Animatronics at doors are now ALWAYS visible if they are there
+        if (AIManager.doorLeftState) {
             leftEl.src = `assets/img/${AIManager.doorLeftState}.png`;
             leftEl.classList.remove('hidden');
         } else {
             leftEl.classList.add('hidden');
         }
 
-        if (GameState.rightLightOn && AIManager.doorRightState) {
+        if (AIManager.doorRightState) {
             rightEl.src = `assets/img/${AIManager.doorRightState}.png`;
             rightEl.classList.remove('hidden');
         } else {
@@ -281,6 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
             officeEl.classList.add('hidden');
         }
     }
+
 
 
     window.checkOfficeDefense = function() {
