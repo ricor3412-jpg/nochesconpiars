@@ -119,7 +119,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    let lastToggle = 0;
     function toggleCamera() {
+        const now = Date.now();
+        if (now - lastToggle < 300) return; // Debounce 300ms
+        lastToggle = now;
+
         if (GameState.power <= 0 || GameState.isMaskOn || GameState.gameOver) return;
         GameState.isMonitorUp = !GameState.isMonitorUp;
         if (GameState.isMonitorUp) {
@@ -130,6 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         updateUsage();
     }
+
 
     // --- Extras & Stars Initialization ---
     const night = GameState.night;
