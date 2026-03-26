@@ -14,10 +14,10 @@ const EnemyPaths = {
     cardo: ['cam6', 'cam7', 'cam5', 'cam4', 'cam3', 'cam2', 'cam1', 'door_right'],
     gian: ['cam6', 'cam7', 'cam5', 'cam4', 'cam3', 'cam2', 'cam1', 'door_right'],
     
-    // Ductos (Rápido: 8/6 -> 1 -> Ducto)
-    piar: ['cam8', 'cam1', 'duct'],
-    alfaro: ['cam6', 'cam1', 'duct'],
-    picock: ['cam6', 'cam1', 'duct'],
+    // Ductos (Linear: 7 -> 4 -> 5 -> 1 -> Ducto)
+    piar: ['cam8', 'cam7', 'cam4', 'cam5', 'cam1', 'duct'],
+    alfaro: ['cam6', 'cam7', 'cam4', 'cam5', 'cam1', 'duct'],
+    picock: ['cam6', 'cam7', 'cam4', 'cam5', 'cam1', 'duct'],
     
     // Peñones (Cam 1 -> Oficina)
     peñones: ['cam1', 'office'] 
